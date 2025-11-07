@@ -1,5 +1,6 @@
 mod config;
 mod menu;
+mod stats; 
 use config::{EASY_WORDS, MEDIUM_WORDS, HARD_WORDS};
 use crossterm::{
     cursor,
@@ -38,6 +39,7 @@ fn main() -> io::Result<()> {
         println!("    typing_test [OPTIONS]");
         println!("OPTIONS:");
         println!("    -m, --menu              Opens the interactive settings menu.");
+        println!("    -s, --stats             Shows your saved stats.");
         println!("    -h, --help              Prints this help message.");
         println!("EXAMPLES:");
         println!("    cargo run --             # Starts the typing test with current settings.");
@@ -47,6 +49,10 @@ fn main() -> io::Result<()> {
 
     if args.contains(&"-m".to_string()) || args.contains(&"--menu".to_string()) {
         return menu::run();
+    }
+
+    if args.contains(&"-s".to_string()) || args.contains(&"--stats".to_string()) {
+        return stats::show_stats();
     }
 
     stdout.execute(EnterAlternateScreen)?;
