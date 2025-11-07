@@ -1,0 +1,14 @@
+[2025-10-08 11:39:11.928]: Application starting
+[2025-10-08 11:39:12.532]: Key event: Esc, App state: Typing
+[2025-10-08 11:39:12.532]: Switching to Command state
+[2025-10-08 11:39:12.837]: Key event: Esc, App state: Command
+[2025-10-08 11:39:12.837]: Switching back to Typing state from Command
+[2025-10-08 11:39:13.012]: Key event: Esc, App state: Typing
+[2025-10-08 11:39:13.012]: Switching to Command state
+[2025-10-08 11:39:13.184]: Key event: Esc, App state: Command
+[2025-10-08 11:39:13.185]: Switching back to Typing state from Command
+[2025-10-08 11:39:13.349]: Key event: Esc, App state: Typing
+[2025-10-08 11:39:13.349]: Switching to Command state
+[2025-10-08 11:45:11.199]: Key event: Char('`'), App state: Command
+[2025-10-08 11:45:11.768]: Key event: Char(':'), App state: Command
+[2025-10-08 11:45:11.944]: Key event: Char('q'), App state: Command

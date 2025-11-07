@@ -1,0 +1,1 @@
+/home/cykler/Documents/programming/allgeneralprogramming/rust/typing_test/target/release/typing_test: /home/cykler/Documents/programming/allgeneralprogramming/rust/typing_test/src/config.rs /home/cykler/Documents/programming/allgeneralprogramming/rust/typing_test/src/main.rs /home/cykler/Documents/programming/allgeneralprogramming/rust/typing_test/src/menu.rs
