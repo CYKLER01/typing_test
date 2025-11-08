@@ -1,1 +1,0 @@
-/home/cykler/Documents/programming/typing_test/target/release/typing_test: /home/cykler/Documents/programming/typing_test/src/config.rs /home/cykler/Documents/programming/typing_test/src/main.rs /home/cykler/Documents/programming/typing_test/src/menu.rs /home/cykler/Documents/programming/typing_test/src/stats.rs
