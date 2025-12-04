@@ -5,6 +5,12 @@ use std::path::PathBuf;
 use directories::ProjectDirs;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LanguagePack {
+    pub name: String,
+    pub words: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum LayoutTheme {
     Default,
     Boxes,
@@ -34,13 +40,6 @@ pub enum GameMode {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum WordListDifficulty {
-    Easy,
-    Medium,
-    Hard,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TestResult {
     pub wpm: f64,
     pub accuracy: f64,
@@ -52,24 +51,32 @@ pub struct Config {
     pub default_test_length: usize,
     pub default_time_limit: u64,
     pub game_mode: GameMode,
-    pub word_list_difficulty: WordListDifficulty,
     pub restart_button: bool,
     pub color_theme: ColorTheme,
     pub layout_theme: LayoutTheme,
     pub results: HashMap<String, Vec<TestResult>>,
+    pub language_packs: Vec<LanguagePack>,
+    pub selected_language: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
+        let language_packs = load_language_packs().unwrap_or_default();
+        let selected_language = if language_packs.is_empty() {
+            "english".to_string()
+        } else {
+            language_packs[0].name.clone()
+        };
         Self {
             default_test_length: 20,
             default_time_limit: 60,
             game_mode: GameMode::Words,
-            word_list_difficulty: WordListDifficulty::Easy,
             restart_button: true,
             color_theme: ColorTheme::default(),
             layout_theme: LayoutTheme::Default,
             results: HashMap::new(),
+            language_packs,
+            selected_language,
         }
     }
 }
@@ -86,22 +93,50 @@ fn get_config_path() -> Option<PathBuf> {
     }
 }
 
+pub fn load_language_packs() -> std::io::Result<Vec<LanguagePack>> {
+    let mut packs = Vec::new();
+    let paths = fs::read_dir("./languages")?;
+    for path in paths {
+        let path = path?.path();
+        if path.is_file() {
+            if let Some(ext) = path.extension() {
+                if ext == "json" {
+                    let file_content = fs::read_to_string(&path)?;
+                    let pack: LanguagePack = serde_json::from_str(&file_content)?;
+                    packs.push(pack);
+                }
+            }
+        }
+    }
+    Ok(packs)
+}
+
 pub fn load_config() -> Config {
     if let Some(config_path) = get_config_path() {
         if let Ok(config_str) = fs::read_to_string(&config_path) {
-            if let Ok(config) = serde_json::from_str(&config_str) {
-                return config;
-            }
+            let mut config: Config = match serde_json::from_str(&config_str) {
+                Ok(config) => config,
+                Err(_) => {
+                    // If the file is invalid, create a default one
+                    let config = Config::default();
+                    if let Ok(config_str) = serde_json::to_string_pretty(&config) {
+                        fs::write(config_path, config_str).ok();
+                    }
+                    return config;
+                }
+            };
+            config.language_packs = load_language_packs().unwrap_or_default();
+            return config;
         }
-        // If the file doesn't exist or is invalid, create a default one
-        let config = Config::default();
+    }
+    // If the file doesn't exist, create a default one
+    let config = Config::default();
+    if let Some(config_path) = get_config_path() {
         if let Ok(config_str) = serde_json::to_string_pretty(&config) {
             fs::write(config_path, config_str).ok();
         }
-        config
-    } else {
-        Config::default()
     }
+    config
 }
 
 pub fn save_config(config: &Config) -> std::io::Result<()> {
@@ -115,18 +150,3 @@ pub fn save_config(config: &Config) -> std::io::Result<()> {
         ))
     }
 }
-
-pub const EASY_WORDS: &[&str] = &[
-    "the", "and", "for", "are", "but", "not", "you", "all", "any", "can",
-    "her", "was", "one", "our", "out", "day", "get", "has", "him", "his",
-];
-
-pub const MEDIUM_WORDS: &[&str] = &[
-    "about", "above", "added", "after", "again", "along", "always", "among", "apple", "baker",
-    "basic", "begin", "being", "below", "bring", "build", "carry", "catch", "cause", "chair",
-];
-
-pub const HARD_WORDS: &[&str] = &[
-    "abundant", "accurate", "achieve", "acquire", "address", "advance", "adverse", "advocate", "ageless", "agitate",
-    "airplane", "allocate", "although", "ambition", "analysis", "ancestor", "announce", "anxious", "apology", "apparent",
-];

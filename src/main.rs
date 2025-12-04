@@ -1,7 +1,6 @@
 mod config;
 mod menu;
-mod stats; 
-use config::{EASY_WORDS, MEDIUM_WORDS, HARD_WORDS};
+mod stats;
 use crossterm::{
     cursor,
     event::{self, Event, KeyCode},
@@ -65,22 +64,30 @@ fn main() -> io::Result<()> {
             let time_limit = config.default_time_limit;
             let layout_theme = config.layout_theme.clone();
 
-            let current_word_list = match config.word_list_difficulty {
-                config::WordListDifficulty::Easy => EASY_WORDS,
-                config::WordListDifficulty::Medium => MEDIUM_WORDS,
-                config::WordListDifficulty::Hard => HARD_WORDS,
-            };
+            let current_word_list: &Vec<String> = &config
+                .language_packs
+                .iter()
+                .find(|p| p.name == config.selected_language)
+                .unwrap()
+                .words;
 
             let (mut words_to_type, mut user_typed_words) = match game_mode {
                 config::GameMode::Words => {
-                    let w: Vec<&str> = current_word_list.choose_multiple(&mut rng, num_words).cloned().collect();
+                    let w: Vec<String> = current_word_list
+                        .choose_multiple(&mut rng, num_words)
+                        .cloned()
+                        .collect();
                     let u = vec![String::new(); w.len()];
                     (w, u)
                 }
                 config::GameMode::Time => {
-                    let mut word_pool: Vec<&str> = Vec::new();
+                    let mut word_pool: Vec<String> = Vec::new();
                     for _ in 0..10 {
-                        word_pool.extend(current_word_list.choose_multiple(&mut rng, current_word_list.len()).cloned());
+                        word_pool.extend(
+                            current_word_list
+                                .choose_multiple(&mut rng, current_word_list.len())
+                                .cloned(),
+                        );
                     }
                     let u = vec![String::new(); word_pool.len()];
                     (word_pool, u)
@@ -412,7 +419,7 @@ fn main() -> io::Result<()> {
 
                                     if let config::GameMode::Time = game_mode {
                                         if words_to_type.len() - current_word_index < 10 {
-                                            let mut new_words: Vec<&str> = current_word_list.choose_multiple(&mut rng, 20).cloned().collect();
+                                            let mut new_words: Vec<String> = current_word_list.choose_multiple(&mut rng, 20).cloned().collect();
                                             words_to_type.append(&mut new_words);
                                             user_typed_words.resize(words_to_type.len(), String::new());
                                         }
@@ -506,8 +513,8 @@ fn main() -> io::Result<()> {
             };
 
             let key = match config.game_mode {
-                config::GameMode::Words => format!("words_{}_{:?}", config.default_test_length, config.word_list_difficulty),
-                config::GameMode::Time => format!("time_{}_{:?}", config.default_time_limit, config.word_list_difficulty),
+                config::GameMode::Words => format!("words_{}_{}", config.default_test_length, config.selected_language),
+                config::GameMode::Time => format!("time_{}_{}", config.default_time_limit, config.selected_language),
             };
             config.results.entry(key).or_insert_with(Vec::new).push(test_result);
             config::save_config(&config)?;

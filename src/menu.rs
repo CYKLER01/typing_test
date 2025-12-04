@@ -19,7 +19,7 @@ const MENU_ITEMS: [&str; 5] = [
     "Test Length (Words)",
     "Time Limit (Seconds)",
     "Layout Theme",
-    "Word List Difficulty",
+    "Language",
 ];
 
 pub fn run() -> io::Result<()> {
@@ -90,12 +90,10 @@ fn change_value(state: &mut MenuState, direction: i32) {
                 LayoutTheme::Boxes => LayoutTheme::Default,
             };
         }
-        4 => { // Word List Difficulty
-            state.config.word_list_difficulty = match state.config.word_list_difficulty {
-                config::WordListDifficulty::Easy => config::WordListDifficulty::Medium,
-                config::WordListDifficulty::Medium => config::WordListDifficulty::Hard,
-                config::WordListDifficulty::Hard => config::WordListDifficulty::Easy,
-            };
+        4 => { // Language
+            let current_language_index = state.config.language_packs.iter().position(|p| p.name == state.config.selected_language).unwrap_or(0);
+            let next_index = (current_language_index as i32 + direction).rem_euclid(state.config.language_packs.len() as i32) as usize;
+            state.config.selected_language = state.config.language_packs[next_index].name.clone();
         }
         _ => {},
     }
@@ -146,7 +144,7 @@ fn get_value_string(config: &Config, item_index: usize) -> String {
         1 => format!("{} words", config.default_test_length),
         2 => format!("{} seconds", config.default_time_limit),
         3 => format!("{:?}", config.layout_theme),
-        4 => format!("{:?}", config.word_list_difficulty),
+        4 => config.selected_language.clone(),
         _ => "".to_string(),
     }
 }
