@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs;
+use std::fs::{self, OpenOptions};
+use std::io::{self, Write};
 use std::path::PathBuf;
 use directories::ProjectDirs;
 
@@ -61,12 +62,6 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        let language_packs = load_language_packs().unwrap_or_default();
-        let selected_language = if language_packs.is_empty() {
-            "english".to_string()
-        } else {
-            language_packs[0].name.clone()
-        };
         Self {
             default_test_length: 20,
             default_time_limit: 60,
@@ -75,8 +70,8 @@ impl Default for Config {
             color_theme: ColorTheme::default(),
             layout_theme: LayoutTheme::Default,
             results: HashMap::new(),
-            language_packs,
-            selected_language,
+            language_packs: Vec::new(), // Will be populated by load_config
+            selected_language: "english".to_string(), // Will be validated by load_config
         }
     }
 }
@@ -93,49 +88,106 @@ fn get_config_path() -> Option<PathBuf> {
     }
 }
 
+fn log_debug(message: &str) {
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open("debug_log.txt") {
+        writeln!(file, "{}", message).ok();
+    }
+}
+
 pub fn load_language_packs() -> std::io::Result<Vec<LanguagePack>> {
     let mut packs = Vec::new();
-    let paths = fs::read_dir("./languages")?;
+    let current_dir = std::env::current_dir()?;
+    log_debug(&format!("Current working directory: {:?}", current_dir));
+
+    let language_dir = current_dir.join("languages");
+    log_debug(&format!("Attempting to load language packs from: {:?}", language_dir));
+
+    if !language_dir.exists() {
+        log_debug(&format!("Language directory {:?} does not exist.", language_dir));
+        return Ok(packs); // Return empty if directory not found
+    }
+
+    let paths = fs::read_dir(&language_dir)?;
     for path in paths {
         let path = path?.path();
         if path.is_file() {
             if let Some(ext) = path.extension() {
                 if ext == "json" {
-                    let file_content = fs::read_to_string(&path)?;
-                    let pack: LanguagePack = serde_json::from_str(&file_content)?;
-                    packs.push(pack);
+                    log_debug(&format!("Found language file: {:?}", path));
+                    if let Ok(file_content) = fs::read_to_string(&path) {
+                        match serde_json::from_str::<LanguagePack>(&file_content) {
+                            Ok(pack) => {
+                                log_debug(&format!("Successfully parsed language pack: {}", pack.name));
+                                packs.push(pack);
+                            }
+                            Err(e) => {
+                                log_debug(&format!("Failed to parse {:?}: {}", path, e));
+                            }
+                        }
+                    } else {
+                        log_debug(&format!("Failed to read file: {:?}", path));
+                    }
                 }
             }
         }
     }
+    log_debug(&format!("Loaded {} language packs.", packs.len()));
     Ok(packs)
 }
 
 pub fn load_config() -> Config {
-    if let Some(config_path) = get_config_path() {
+    let current_language_packs = load_language_packs().unwrap_or_default();
+    let default_selected_language = if current_language_packs.is_empty() {
+        "english".to_string()
+    } else {
+        current_language_packs[0].name.clone()
+    };
+
+    let mut config = if let Some(config_path) = get_config_path() {
         if let Ok(config_str) = fs::read_to_string(&config_path) {
-            let mut config: Config = match serde_json::from_str(&config_str) {
-                Ok(config) => config,
+            match serde_json::from_str::<Config>(&config_str) {
+                Ok(mut c) => {
+                    c.language_packs = current_language_packs;
+                    if !c.language_packs.iter().any(|p| p.name == c.selected_language) {
+                        c.selected_language = default_selected_language.clone();
+                    }
+                    c
+                },
                 Err(_) => {
                     // If the file is invalid, create a default one
-                    let config = Config::default();
-                    if let Ok(config_str) = serde_json::to_string_pretty(&config) {
+                    let mut new_config = Config::default();
+                    new_config.language_packs = current_language_packs;
+                    new_config.selected_language = default_selected_language.clone();
+                    if let Ok(config_str) = serde_json::to_string_pretty(&new_config) {
                         fs::write(config_path, config_str).ok();
                     }
-                    return config;
+                    new_config
                 }
-            };
-            config.language_packs = load_language_packs().unwrap_or_default();
-            return config;
+            }
+        } else {
+            // If the file doesn't exist, create a default one
+            let mut new_config = Config::default();
+            new_config.language_packs = current_language_packs;
+            new_config.selected_language = default_selected_language.clone();
+            if let Ok(config_str) = serde_json::to_string_pretty(&new_config) {
+                fs::write(config_path, config_str).ok();
+            }
+            new_config
         }
+    } else {
+        // If config path cannot be determined, return a default config
+        let mut new_config = Config::default();
+        new_config.language_packs = current_language_packs;
+        new_config.selected_language = default_selected_language.clone();
+        new_config
+    };
+
+    // Ensure language_packs are always up-to-date in the returned config
+    config.language_packs = load_language_packs().unwrap_or_default();
+    if !config.language_packs.iter().any(|p| p.name == config.selected_language) {
+        config.selected_language = default_selected_language;
     }
-    // If the file doesn't exist, create a default one
-    let config = Config::default();
-    if let Some(config_path) = get_config_path() {
-        if let Ok(config_str) = serde_json::to_string_pretty(&config) {
-            fs::write(config_path, config_str).ok();
-        }
-    }
+
     config
 }
 

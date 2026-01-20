@@ -17,6 +17,7 @@ use std::time::Instant;
 use chrono::Local;
 
 fn main() -> io::Result<()> {
+    eprintln!("Starting main function.");
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
 
@@ -506,18 +507,20 @@ fn main() -> io::Result<()> {
                     * 100.0
             };
 
-            let test_result = config::TestResult {
-                wpm: final_wpm,
-                accuracy,
-                timestamp: Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
-            };
+            if final_wpm >= 5.0 {
+                let test_result = config::TestResult {
+                    wpm: final_wpm,
+                    accuracy,
+                    timestamp: Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+                };
 
-            let key = match config.game_mode {
-                config::GameMode::Words => format!("words_{}_{}", config.default_test_length, config.selected_language),
-                config::GameMode::Time => format!("time_{}_{}", config.default_time_limit, config.selected_language),
-            };
-            config.results.entry(key).or_insert_with(Vec::new).push(test_result);
-            config::save_config(&config)?;
+                let key = match config.game_mode {
+                    config::GameMode::Words => format!("words_{}_{}", config.default_test_length, config.selected_language),
+                    config::GameMode::Time => format!("time_{}_{}", config.default_time_limit, config.selected_language),
+                };
+                config.results.entry(key).or_insert_with(Vec::new).push(test_result);
+                config::save_config(&config)?;
+            }
 
             stdout.execute(terminal::Clear(terminal::ClearType::All))?;
             let results = vec![
