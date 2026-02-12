@@ -19,7 +19,7 @@ A terminal-based typing test application written in Rust.
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/CYKLER01/typing_test
     cd typing_test
     ```
 
