@@ -7,7 +7,7 @@ A terminal-based typing test application written in Rust.
 *   **Two Game Modes:**
     *   **Words:** Type a specific number of words.
     *   **Time:** Type for a specific amount of time.
-*   **Difficulty Levels:** Choose between Easy, Medium, and Hard word lists.
+*   **Language Packs:** Choose between built-in word lists, like `english`, `english_1k`, or `english_25k`.
 *   **Customizable Layout:** Select from different visual themes.
 *   **Configuration Menu:** An interactive menu to easily change settings.
 *   **Persistent Results:** Your WPM and accuracy are saved for each test configuration.
@@ -126,7 +126,7 @@ In the menu, you can:
 *   **Test Length (Words):** The number of words for the "Words" game mode.
 *   **Time Limit (Seconds):** The duration for the "Time" game mode.
 *   **Layout Theme:** `Default` or `Boxes`.
-*   **Word List Difficulty:** `Easy`, `Medium`, or `Hard`.
+*   **Language:** The language pack words are drawn from, e.g. `english` or `english_5k`.
 
 ## Configuration
 
