@@ -188,7 +188,7 @@ fn main() -> io::Result<()> {
                         };
 
                         stdout
-                            .execute(cursor::MoveTo(start_x, start_y - 2))?
+                            .execute(cursor::MoveTo(start_x, start_y.saturating_sub(2)))?
                             .execute(Print(top_bar_text))?;
 
                         let mut x = start_x;
@@ -260,7 +260,7 @@ fn main() -> io::Result<()> {
                         }
                     }
                     config::LayoutTheme::Boxes => {
-                        let box_width = (width as f32 * 0.8).max(40.0) as u16;
+                        let box_width = ((width as f32 * 0.8) as u16).min(width).max(40.min(width));
                         let box_start_x = (width - box_width) / 2;
 
                         // --- WPM/Timer Box ---
@@ -398,7 +398,7 @@ fn main() -> io::Result<()> {
                         cursor_y = y;
                     }
                     config::LayoutTheme::Boxes => {
-                        let box_width = (width as f32 * 0.8).max(40.0) as u16;
+                        let box_width = ((width as f32 * 0.8) as u16).min(width).max(40.min(width));
                         let box_start_x = (width - box_width) / 2;
                         let wpm_box_start_y: u16 = 2;
                         let main_box_start_y: u16 = wpm_box_start_y + 4;
@@ -429,11 +429,11 @@ fn main() -> io::Result<()> {
                     if let Event::Key(key_event) = event::read()? {
                         match key_event.code {
                             KeyCode::Char(' ') => {
-                                if current_word_index < words_to_type.len() - 1 {
+                                if current_word_index < words_to_type.len().saturating_sub(1) {
                                     current_word_index += 1;
 
                                     if let config::GameMode::Time = game_mode {
-                                        if words_to_type.len() - current_word_index < 10 {
+                                        if words_to_type.len().saturating_sub(current_word_index) < 10 {
                                             let mut new_words: Vec<String> = current_word_list.choose_multiple(&mut rng, 20).cloned().collect();
                                             words_to_type.append(&mut new_words);
                                             user_typed_words.resize(words_to_type.len(), String::new());

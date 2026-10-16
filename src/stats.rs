@@ -62,20 +62,20 @@ fn draw_stats(stdout: &mut Stdout, state: &StatsState) -> io::Result<()> {
     let (width, height) = terminal::size()?;
 
     let title = "Saved Stats";
-    let title_x = (width - title.len() as u16) / 2;
+    let title_x = (width.saturating_sub(title.len() as u16)) / 2;
     stdout
         .execute(cursor::MoveTo(title_x, 1))?
         .execute(Print(title.bold()))?;
 
     let instructions = "Use ↑/↓ to select mode, 't' for table, 'g' for graph, 'q' to quit.";
-    let inst_x = (width - instructions.len() as u16) / 2;
+    let inst_x = (width.saturating_sub(instructions.len() as u16)) / 2;
     stdout
-        .execute(cursor::MoveTo(inst_x, height - 2))?
+        .execute(cursor::MoveTo(inst_x, height.saturating_sub(2)))?
         .execute(Print(instructions.dark_grey()))?;
 
     if state.config.results.is_empty() {
         let no_stats = "No stats saved yet.";
-        let no_stats_x = (width - no_stats.len() as u16) / 2;
+        let no_stats_x = (width.saturating_sub(no_stats.len() as u16)) / 2;
         stdout
             .execute(cursor::MoveTo(no_stats_x, height / 2))?
             .execute(Print(no_stats))?;
@@ -98,7 +98,7 @@ fn draw_stats(stdout: &mut Stdout, state: &StatsState) -> io::Result<()> {
                     y = draw_table(stdout, state.config.results.get(*key).unwrap(), y)?;
                 }
                 ViewMode::Graph => {
-                    y = draw_graph(stdout, state.config.results.get(*key).unwrap(), y, width - 10)?;
+                    y = draw_graph(stdout, state.config.results.get(*key).unwrap(), y, width.saturating_sub(10))?;
                 }
             }
         } else {

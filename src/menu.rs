@@ -104,7 +104,7 @@ fn draw_menu(stdout: &mut Stdout, state: &MenuState) -> io::Result<()> {
     stdout.execute(Clear(ClearType::All))?;
 
     let title = "Settings Menu";
-    let title_x = (width - title.len() as u16) / 2;
+    let title_x = (width.saturating_sub(title.len() as u16)) / 2;
     stdout
         .execute(cursor::MoveTo(title_x, 2))?
         .execute(Print(title.bold()))?;
@@ -125,14 +125,14 @@ fn draw_menu(stdout: &mut Stdout, state: &MenuState) -> io::Result<()> {
     }
 
     let instructions = "Use ↑/↓ to navigate, ←/→ to change values, 'enter' to save, 'q' to quit.";
-    let status_x = (width - state.status_message.len() as u16) / 2;
-    let inst_x = (width - instructions.len() as u16) / 2;
+    let status_x = (width.saturating_sub(state.status_message.len() as u16)) / 2;
+    let inst_x = (width.saturating_sub(instructions.len() as u16)) / 2;
 
     stdout
-        .execute(cursor::MoveTo(status_x, height - 4))?
+        .execute(cursor::MoveTo(status_x, height.saturating_sub(4)))?
         .execute(Print(&state.status_message))?;
     stdout
-        .execute(cursor::MoveTo(inst_x, height - 2))?
+        .execute(cursor::MoveTo(inst_x, height.saturating_sub(2)))?
         .execute(Print(instructions.dark_grey()))?;
 
     stdout.flush()
