@@ -17,7 +17,6 @@ use std::time::Instant;
 use chrono::Local;
 
 fn main() -> io::Result<()> {
-    eprintln!("Starting main function.");
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
 
