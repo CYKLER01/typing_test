@@ -46,7 +46,13 @@ pub fn show_menu(stdout: &mut io::Stdout) -> io::Result<()> {
 
         if let Event::Key(key_event) = event::read()? {
             match key_event.code {
-                KeyCode::Char('q') => break,
+                KeyCode::Char('q') | KeyCode::Esc => break,
+                KeyCode::Enter => {
+                    match config::save_config(&state.config) {
+                        Ok(_) => state.status_message = "Config saved successfully!".to_string(),
+                        Err(e) => state.status_message = format!("Error saving config: {}", e),
+                    }
+                }
                 KeyCode::Up => {
                     state.selected_item = state.selected_item.saturating_sub(1);
                 }
@@ -55,12 +61,6 @@ pub fn show_menu(stdout: &mut io::Stdout) -> io::Result<()> {
                 }
                 KeyCode::Left => change_value(&mut state, -1),
                 KeyCode::Right => change_value(&mut state, 1),
-                KeyCode::Enter => {
-                    match config::save_config(&state.config) {
-                        Ok(_) => state.status_message = "Config saved successfully!".to_string(),
-                        Err(e) => state.status_message = format!("Error saving config: {}", e),
-                    }
-                }
                 _ => {}
             }
         }
