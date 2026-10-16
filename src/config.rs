@@ -55,6 +55,9 @@ pub struct Config {
     pub color_theme: ColorTheme,
     pub layout_theme: LayoutTheme,
     pub results: HashMap<String, Vec<TestResult>>,
+    /// Not persisted: language packs are always re-read from the language
+    /// files at startup, so no need to duplicate thousands of words here.
+    #[serde(skip)]
     pub language_packs: Vec<LanguagePack>,
     pub selected_language: String,
 }
