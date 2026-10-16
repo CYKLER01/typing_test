@@ -133,8 +133,8 @@ In the menu, you can:
 The application saves your settings and test results in a `config.json` file. This file is located in the appropriate configuration directory for your operating system.
 
 *   **Linux:** `~/.config/typing_test/config.json`
-*   **macOS:** `~/Library/Application Support/com.gemini.typing_test/config.json`
-*   **Windows:** `C:\Users\<YourUser>\AppData\Roaming\gemini\typing_test\config\config.json`
+*   **macOS:** `~/Library/Application Support/com.cykler.typing_test/config.json`
+*   **Windows:** `C:\Users\<YourUser>\AppData\Roaming\cykler\typing_test\config\config.json`
 
 You can manually edit this file to change the color theme or other advanced settings.
 

@@ -79,14 +79,38 @@ impl Default for Config {
 }
 
 fn get_config_path() -> Option<PathBuf> {
-    if let Some(proj_dirs) = ProjectDirs::from("com", "gemini", "typing_test") {
-        let config_dir = proj_dirs.config_dir();
-        if !config_dir.exists() {
-            fs::create_dir_all(config_dir).ok()?;
+    let config_dir = ProjectDirs::from("com", "cykler", "typing_test")?.config_dir().to_path_buf();
+    let config_path = config_dir.join("config.json");
+    if !config_path.exists() {
+        migrate_old_config_dir(&config_dir);
+    }
+    if !config_dir.exists() {
+        fs::create_dir_all(&config_dir).ok()?;
+    }
+    Some(config_path)
+}
+
+/// One-time migration from the previously used config directory so users
+/// who already have settings and results keep them.
+fn migrate_old_config_dir(config_dir: &Path) {
+    let Some(old_dir) = ProjectDirs::from("com", "gemini", "typing_test")
+        .map(|d| d.config_dir().to_path_buf())
+    else {
+        return;
+    };
+    if !old_dir.exists() || old_dir == config_dir {
+        return;
+    }
+    if fs::create_dir_all(config_dir).is_err() {
+        return;
+    }
+    if let Ok(entries) = fs::read_dir(&old_dir) {
+        for entry in entries.flatten() {
+            let target = config_dir.join(entry.file_name());
+            if !target.exists() {
+                let _ = fs::copy(entry.path(), &target);
+            }
         }
-        Some(config_dir.join("config.json"))
-    } else {
-        None
     }
 }
 
