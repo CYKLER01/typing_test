@@ -47,6 +47,20 @@ fn main() -> io::Result<()> {
         return Ok(());
     }
 
+    if !config.language_packs.iter().any(|p| p.name == config.selected_language) {
+        eprintln!(
+            "Error: language pack '{}' not found. Available packs: {}",
+            config.selected_language,
+            config
+                .language_packs
+                .iter()
+                .map(|p| p.name.as_str())
+                .collect::<Vec<&str>>()
+                .join(", ")
+        );
+        return Ok(());
+    }
+
     if args.contains(&"-m".to_string()) || args.contains(&"--menu".to_string()) {
         return menu::run();
     }
